@@ -20,11 +20,12 @@ class UserWithProfileSerializer(serializers.ModelSerializer):
    class Meta:
       model = User
       fields = ['id', 'email', 'username', 'first_name', 'last_name', 'is_active', 'date_joined', 'profile']               
+    
       
 class UserRegistrationSerializer(serializers.ModelSerializer):
    password = serializers.CharField(write_only=True, min_length=8)
-   password_confirm = serializers.CharField(write_only=True)     
-   
+   password_confirm = serializers.CharField(write_only=True)
+
    class Meta:
       model = User
       fields = ['email', 'username', 'first_name', 'last_name', 'password', 'password_confirm']
@@ -35,7 +36,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
       return attrs
    
    def create(self, validated_data):
-      validated_data.pop('password_confirm')
+      validated_data.pop('password_confirm', None)
       user = User.objects.create_user(**validated_data)  
       UserProfile.objects.create(user=user)
       return user

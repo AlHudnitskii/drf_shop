@@ -73,13 +73,13 @@ DATABASES = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTIFICATION_CLASSES': [
-        'rest_framefork_simplejwt.authentification.JWTAuthentification',
+        'rest_framework_simplejwt.authentification.JWTAuthentification',
     ],
     'DEFAULT_PERMISSIONS_CLASSES' : [
-        'rest_framefork.permissions.IsAuthentificated',
+        'rest_framework.permissions.IsAuthentificated',
     ],
     'DEFAULT_RENDERER_CLASSES' : [
-        'rest_framefork.renderers.JSONRenderer',
+        'rest_framework.renderers.JSONRenderer',
     ],
 }
 
