@@ -9,6 +9,8 @@ SECRET_KEY = 'django-insecure-epph8k^t)+yd8mw55!l_+c*9(*eq8%vx#(+2j2ye^1m%j9-v6u
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DJANGO_APPS = [
     'django.contrib.admin',

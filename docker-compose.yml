@@ -1,0 +1,162 @@
+version: '3.8'
+
+services:
+  # Redis для кеширования
+  redis:
+    image: redis:7-alpine
+    container_name: microservices_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    networks:
+      - microservices_network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PRODUCT_SERVICE_URL=http://product-service:8001
+      - CART_SERVICE_URL=http://cart-service:8002
+      - ORDER_SERVICE_URL=http://order-service:8003
+      - USER_SERVICE_URL=http://user-service:8004
+    volumes:
+      - ./api-gateway:/app
+      - ./databases:/app/databases
+    depends_on:
+      - redis
+      - product-service
+      - cart-service
+      - order-service
+      - user-service
+    restart: unless-stopped
+    networks:
+      - microservices_network
+
+  # Product Service
+  product-service:
+    build:
+      context: ./services/product-service
+      dockerfile: Dockerfile
+    container_name: product_service
+    ports:
+      - "8001:8001"
+    environment:
+      - DEBUG=True
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./services/product-service:/app
+      - ./databases:/app/databases
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - microservices_network
+
+  # Cart Service
+  cart-service:
+    build:
+      context: ./services/cart-service
+      dockerfile: Dockerfile
+    container_name: cart_service
+    ports:
+      - "8002:8002"
+    environment:
+      - DEBUG=True
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PRODUCT_SERVICE_URL=http://product-service:8001
+      - USER_SERVICE_URL=http://user-service:8004
+    volumes:
+      - ./services/cart-service:/app
+      - ./databases:/app/databases
+    depends_on:
+      - redis
+      - product-service
+      - user-service
+    restart: unless-stopped
+    networks:
+      - microservices_network
+
+  # Order Service
+  order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile
+    container_name: order_service
+    ports:
+      - "8003:8003"
+    environment:
+      - DEBUG=True
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PRODUCT_SERVICE_URL=http://product-service:8001
+      - CART_SERVICE_URL=http://cart-service:8002
+      - USER_SERVICE_URL=http://user-service:8004
+    volumes:
+      - ./services/order-service:/app
+      - ./databases:/app/databases
+    depends_on:
+      - redis
+      - product-service
+      - cart-service
+      - user-service
+    restart: unless-stopped
+    networks:
+      - microservices_network
+
+  # User Service
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: user_service
+    ports:
+      - "8004:8004"
+    environment:
+      - DEBUG=True
+    volumes:
+      - ./services/user-service:/app
+      - ./databases:/app/databases
+    restart: unless-stopped
+    networks:
+      - microservices_network
+
+  # Frontend (Vue)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+    networks:
+      - microservices_network
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  microservices_network:
+    driver: bridge

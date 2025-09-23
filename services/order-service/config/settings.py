@@ -8,6 +8,9 @@ SECRET_KEY = 'order-service-secret-key-change-in-production'
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
